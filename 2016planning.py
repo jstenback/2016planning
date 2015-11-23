@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import sys
+import os
 import re
 
 class Initiative:
@@ -82,7 +83,8 @@ topline_goals = {
     "Prototype the Future": "E. Prototype the Future "
 }
 
-with open("Downloads/2016Initiatives.txt", "r") as f:
+with open(os.path.join(os.path.expanduser("~"),
+                       "Downloads/2016Initiatives.txt"), "r") as f:
     for line in f:
         line = line[:-1]
         if line.encode('utf-8').startswith(b'\xef\xbb\xbf'):
