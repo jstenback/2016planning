@@ -83,8 +83,13 @@ topline_goals = {
     "Prototype the Future": "E. Prototype the Future "
 }
 
-with open(os.path.join(os.path.expanduser("~"),
-                       "Downloads/2016Initiatives.txt"), "r") as f:
+INPUT_PATH = os.path.join(os.path.expanduser("~"),
+                          "Downloads/2016Initiatives.txt")
+
+if os.path.exists(INPUT_PATH):
+    os.rename(INPUT_PATH, INPUT_PATH + ".tmp")
+
+with open(os.path.join(INPUT_PATH + ".tmp"), "r") as f:
     for line in f:
         line = line[:-1]
         if line.encode('utf-8').startswith(b'\xef\xbb\xbf'):
