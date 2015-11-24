@@ -312,7 +312,7 @@ def dump_resources():
             if not r.endswith(" ($)"):
                 continue
 
-            print(" ${}k allocated for {} for {}".format(int(t.resources[r] / 1000), r, t.name))
+            print(" ${}k allocated for {} for {}, {}".format(int(t.resources[r] / 1000), r, t.project.name, t.name))
 
 def dump_CSV_projects():
     res = {}
