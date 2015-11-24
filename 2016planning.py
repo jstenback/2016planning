@@ -234,31 +234,34 @@ def dump_CSV_all():
 def dump_resources():
     res = {}
 
-    for i in initiatives + [maintenance]:
-        for p in i.projects:
-            if i != maintenance:
-                who = re.search(r'\[.*\]$', p.name)
+    def dump_initiative_resources(initiatives):
+        for i in initiatives:
+            for p in i.projects:
+                if i != maintenance:
+                    who = re.search(r'\[.*\]$', p.name)
 
-                if who == None:
-                    print("Missing owner for initiative {}".format(p.name))
+                    if who == None:
+                        print("Missing owner for initiative {}".format(p.name))
 
-            for t in p.targets:
-                if t.resources == None:
-                    print("Resource declaration missing from {}, {}" \
-                          .format(p.name, t.name))
+                for t in p.targets:
+                    if t.resources == None:
+                        print("Resource declaration missing from {}, {}" \
+                              .format(p.name, t.name))
 
-                if t.resources:
-                    for r in t.resources:
-                        if r == '':
-                            print("Missing team name for target {}" \
-                                  .format(t.name))
+                    if t.resources:
+                        for r in t.resources:
+                            if r == '':
+                                print("Missing team name for target {}" \
+                                      .format(t.name))
 
-                        if r in res:
-                            res[r] += t.resources[r]
-                        elif r != "none" and t.resources[r] != 0.0:
-                            res[r] = t.resources[r]
+                            if r in res:
+                                res[r] += t.resources[r]
+                            elif r != "none" and t.resources[r] != 0.0:
+                                res[r] = t.resources[r]
 
-                    #print("{}, {}: {}".format(p.name, t.name, t.resources))
+                        #print("{}, {}: {}".format(p.name, t.name, t.resources))
+
+    dump_initiative_resources(initiatives + [maintenance])
 
     total = 0.0
 
