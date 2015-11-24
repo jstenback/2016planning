@@ -20,8 +20,8 @@ class Initiative:
         self.projects = []
 
 class Project:
-    def __init__(self, name):
-        self.name = name
+    def __init__(self, name, initiative):
+        self.initiative = initiative
         self.when = None
         self.targets = []
         self.dependencies = ""
@@ -29,8 +29,9 @@ class Project:
         self.res_total = 0.0
 
 class Target:
-    def __init__(self, name):
+    def __init__(self, name, project):
         self.name = name
+        self.project = project
         self.when = None
         self.dependencies = ""
         self.resources = None
@@ -139,7 +140,7 @@ with open(os.path.join(INPUT_PATH + ".tmp"), "r") as f:
             in_topline_goal = False
             in_kpi = False
 
-            cur_project = Project(line[23:])
+            cur_project = Project(line[23:], cur_initiative)
             cur_initiative.projects.append(cur_project)
             continue
 
@@ -147,12 +148,12 @@ with open(os.path.join(INPUT_PATH + ".tmp"), "r") as f:
             in_topline_goal = False
             in_kpi = False
 
-            cur_project = Project(line[8:])
+            cur_project = Project(line[8:], cur_initiative)
             cur_initiative.projects.append(cur_project)
             continue
 
         if line.startswith("* Target:"):
-            cur_project.targets.append(Target(line[10:]))
+            cur_project.targets.append(Target(line[10:], cur_project))
 
             continue
 
