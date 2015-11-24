@@ -4,23 +4,30 @@ import sys
 import os
 import re
 
+def name_and_owner(s):
+    data = s.split('[')
+    name = data[0].strip()
+    owner = None
+
+    if len(data) > 1:
+        owner = data[1]
+        if owner[-1] != ']':
+            raise Exception("Closing bracket missing in owner")
+
+        owner = owner[:-1].strip()
+
+    return [name, owner]
+
 class Initiative:
-    def __init__(self, data):
-        self.name = data[0]
-
-        if len(data) > 1:
-            self.owner = data[1]
-            if self.owner[-1] != ']':
-                raise Exception("Closing bracket missing in initiative owner")
-
-            self.owner = self.owner[:-1]
-
+    def __init__(self, name):
+        [self.name, self.owner] = name_and_owner(name)
         self.toplinegoals = []
         self.kpis = []
         self.projects = []
 
 class Project:
     def __init__(self, name, initiative):
+        [self.name, self.owner] = name_and_owner(name)
         self.initiative = initiative
         self.when = None
         self.targets = []
@@ -30,7 +37,7 @@ class Project:
 
 class Target:
     def __init__(self, name, project):
-        self.name = name
+        [self.name, self.owner] = name_and_owner(name)
         self.project = project
         self.when = None
         self.dependencies = ""
@@ -116,13 +123,13 @@ with open(os.path.join(INPUT_PATH + ".tmp"), "r") as f:
             break
 
         if line.startswith("* Initiative: Platform Maintenance"):
-            cur_initiative = Initiative([line[14:]])
+            cur_initiative = Initiative(line[14:])
             maintenance = cur_initiative
             cur_project = None
             continue
 
         if line.startswith("* Initiative: "):
-            cur_initiative = Initiative(line[14:].split('['))
+            cur_initiative = Initiative(line[14:])
             initiatives.append(cur_initiative)
             cur_project = None
             continue
@@ -246,10 +253,8 @@ def dump_resources():
         for i in initiatives:
             for p in i.projects:
                 if i != maintenance:
-                    who = re.search(r'\[.*\]$', p.name)
-
-                    if who == None:
-                        print("Missing owner for initiative {}".format(p.name))
+                    if not p.owner:
+                        print("Missing owner for project {}".format(p.name))
 
                 for t in p.targets:
                     if t.resources == None:
@@ -300,7 +305,7 @@ def dump_resources():
         projects += i.projects
 
     for p in sorted(projects, key=lambda p: -p.res_total):
-        dump_res(p.res, "Project: {}".format(p.name))
+        dump_res(p.res, "Project: {} [{}]".format(p.name, p.owner))
 
     for p in sorted(maintenance.projects, key=lambda p: -p.res_total):
         dump_res(p.res, "Maintenance: {}".format(p.name))
