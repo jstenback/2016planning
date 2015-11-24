@@ -60,6 +60,10 @@ class Target:
                 if res == "?":
                     print("Resourcing in {} TBD for {}" \
                           .format(team, self.name))
+                elif res.startswith('$'):
+                    team += " ($)"
+                    res = res[1:]
+                    self.resources[team] = self.resources.setdefault(team, 0) + float(res)
                 else:
                     self.resources[team] = self.resources.setdefault(team, 0) + float(res)
             except:
@@ -233,7 +237,9 @@ def dump_CSV_all():
             print('"{}", "{}", "", "{}", "", "{}", "{}"' \
                   .format(topline_goals[i.toplinegoals[0]], i.name, p.name,
                           targets, p.when or ""))
+
 def dump_resources():
+    dollar_targets = []
     def dump_initiative_resources(initiatives):
         res = {}
         for i in initiatives:
@@ -253,6 +259,13 @@ def dump_resources():
                             if r == '':
                                 print("Missing team name for target {}" \
                                       .format(t.name))
+
+                                continue
+
+                            if r.endswith(" ($)"):
+                                dollar_targets.append(t)
+
+                                continue
 
                             res[r] = res.setdefault(r, 0) + t.resources[r]
                             p.res[r] = p.res.setdefault(r, 0) + t.resources[r]
@@ -290,6 +303,15 @@ def dump_resources():
 
     for p in sorted(maintenance.projects, key=lambda p: -p.res_total):
         dump_res(p.res, "Maintenance: {}".format(p.name))
+
+    print("\nMoney requested:")
+
+    for t in dollar_targets:
+        for r in t.resources:
+            if not r.endswith(" ($)"):
+                continue
+
+            print(" ${}k allocated for {} for {}".format(int(t.resources[r] / 1000), r, t.name))
 
 def dump_CSV_projects():
     res = {}
