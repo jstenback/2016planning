@@ -25,6 +25,8 @@ class Project:
         self.when = None
         self.targets = []
         self.dependencies = ""
+        self.res = {}
+        self.res_total = 0.0
 
 class Target:
     def __init__(self, name):
@@ -232,9 +234,8 @@ def dump_CSV_all():
                   .format(topline_goals[i.toplinegoals[0]], i.name, p.name,
                           targets, p.when or ""))
 def dump_resources():
-    res = {}
-
     def dump_initiative_resources(initiatives):
+        res = {}
         for i in initiatives:
             for p in i.projects:
                 if i != maintenance:
@@ -247,30 +248,48 @@ def dump_resources():
                     if t.resources == None:
                         print("Resource declaration missing from {}, {}" \
                               .format(p.name, t.name))
-
-                    if t.resources:
+                    elif t.resources:
                         for r in t.resources:
                             if r == '':
                                 print("Missing team name for target {}" \
                                       .format(t.name))
 
-                            if r in res:
-                                res[r] += t.resources[r]
-                            elif r != "none" and t.resources[r] != 0.0:
-                                res[r] = t.resources[r]
+                            res[r] = res.setdefault(r, 0) + t.resources[r]
+                            p.res[r] = p.res.setdefault(r, 0) + t.resources[r]
+                            p.res_total += t.resources[r]
 
                         #print("{}, {}: {}".format(p.name, t.name, t.resources))
+                    else:
+                        print("No resource request for target {}." \
+                              .format(t.name))
 
-    dump_initiative_resources(initiatives + [maintenance])
+        return res
 
-    total = 0.0
+    res = dump_initiative_resources(initiatives + [maintenance])
 
-    for team in sorted(res.keys()):
-        print("{}: {}".format(team, res[team]))
+    def dump_res(res, title):
+        print("\n\n" + title)
+        total = 0.0
 
-        total += res[team]
+        for team in sorted(res.keys(), key=str.lower):
+            print("  {: <15s}: {:.1f}".format(team, res[team]))
 
-    print("Total: {}".format(total))
+            total += res[team]
+
+        print("  ----------------------\n  Total          : {:.1f}".format(total))
+
+    dump_res(res, "All resources")
+
+    projects = []
+
+    for i in initiatives:
+        projects += i.projects
+
+    for p in sorted(projects, key=lambda p: -p.res_total):
+        dump_res(p.res, "Project: {}".format(p.name))
+
+    for p in sorted(maintenance.projects, key=lambda p: -p.res_total):
+        dump_res(p.res, "Maintenance: {}".format(p.name))
 
 def dump_CSV_projects():
     res = {}
