@@ -372,17 +372,25 @@ def dump_resources():
             delta = ""
 
             if dump_delta:
-                delta = "unknown team"
+                s = " (unknown team"
 
                 if team in teams:
-                    if teams[team].headcount == 0:
-                        delta = "no current data"
+                    t = teams[team]
+                    if t.headcount == 0:
+                        s = " (no current data"
                     else:
-                        delta = res[team] - teams[team].headcount
-                        delta = "{}{:.2f}".format('+' if delta >= 0 else '',
-                                                  delta)
+                        new = res[team] - t.headcount
+                        reqs = t.reqs
 
-                delta = " ({})".format(delta)
+                        s = " (current {}".format(t.ftes + t.contr)
+
+                        if t.reqs:
+                            s += ", reqs {}".format(t.reqs)
+
+                        s += ", new {}{:.2f}" \
+                             .format('+' if new >= 0 else '', new)
+
+                delta = s + ")"
 
             print("  {: <15s}: {:.2f}{}" \
                   .format(team, res[team], delta))
