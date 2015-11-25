@@ -66,8 +66,9 @@ class Target:
                 res = res.strip()
 
                 if res == "?":
-                    print("Resourcing in {} TBD for {}" \
-                          .format(team, self.name))
+                    if verbose:
+                        print("Resourcing in {} TBD for {}" \
+                              .format(team, self.name))
                 elif res.startswith('$'):
                     team += " ($)"
                     res = res[1:]
@@ -75,7 +76,9 @@ class Target:
                 else:
                     self.resources[team] = self.resources.setdefault(team, 0) + float(res)
             except:
-                print("Invalid resource declaration '{}' in target {}".format(m, self.name))
+                if verbose:
+                    print("Invalid resource declaration '{}' in target {}" \
+                          .format(m, self.name))
 
 cur_initiative = None
 cur_project = None
@@ -279,8 +282,9 @@ def dump_resources():
 
                         #print("{}, {}: {}".format(p.name, t.name, t.resources))
                     else:
-                        print("No resource request for target {}." \
-                              .format(t.name))
+                        if verbose:
+                            print("No resource request for target {}." \
+                                  .format(t.name))
 
         return res
 
