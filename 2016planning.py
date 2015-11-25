@@ -230,7 +230,7 @@ with open(os.path.join(INPUT_PATH + ".tmp"), "r") as f:
             in_kpi = False
 
             cur_project = Project(line[8:], cur_initiative)
-            cur_initiative.projects.append(cur_project)
+            maintenance.projects.append(cur_project)
             continue
 
         if line.startswith("* Target:"):
@@ -414,8 +414,17 @@ def dump_resources():
     for p in sorted(projects, key=lambda p: -p.res_total):
         dump_res(p.res, "Project: {} [{}]".format(p.name, p.owner))
 
+    print("\nMaintenance:")
+
+    total = 0.0
+
     for p in sorted(maintenance.projects, key=lambda p: -p.res_total):
-        dump_res(p.res, "Maintenance: {}".format(p.name))
+        print("  {: <15s}: {:.2f}".format(p.name, p.res[p.name]))
+
+        total += p.res[p.name]
+
+    print("  ----------------------")
+    print("  Total          : {:.2f}".format(total))
 
     print("\nMoney requested:")
 
