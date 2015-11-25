@@ -125,7 +125,7 @@ topline_goals = {
 }
 
 INPUT_PATH = os.path.join(os.path.expanduser("~"),
-                          "Downloads/2016Initiatives.txt")
+                          "Downloads/2016H1Initiatives.txt")
 
 if os.path.exists(INPUT_PATH):
     os.rename(INPUT_PATH, INPUT_PATH + ".tmp")
