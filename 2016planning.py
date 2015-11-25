@@ -365,6 +365,7 @@ def dump_resources():
     def dump_res(res, title, dump_delta = False):
         print("\n\n" + title)
         total = 0.0
+        total_hc = 0
 
         for team in sorted(res.keys(), key=str.lower):
             if team == "none" and res[team] == 0:
@@ -383,6 +384,8 @@ def dump_resources():
                         new = res[team] - t.headcount
                         reqs = t.reqs
 
+                        total_hc += t.ftes
+
                         s = " (current {}".format(t.ftes + t.contr)
 
                         if t.reqs:
@@ -398,8 +401,8 @@ def dump_resources():
 
             total += res[team]
 
-        print("  ----------------------\n  Total          : {:.2f}" \
-              .format(total))
+        print("  ----------------------\n  Total          : {:.2f} (current {})" \
+              .format(total, total_hc))
 
     dump_res(res, "All resources", True)
 
