@@ -18,6 +18,27 @@ def name_and_owner(s):
 
     return [name, owner]
 
+class Team:
+    def __init__(self, name):
+        data = name.split('(')
+        self.name = data[0].strip()
+        self.shortname = name
+
+        if len(data) > 1:
+            self.shortname = data[1]
+            if self.shortname[-1] != ')':
+                raise Exception("Closing parenthesis missing in team short name '{}'".format(name))
+
+            self.shortname = self.shortname[:-1].strip()
+
+        self.ftes = 0
+        self.contr = 0
+        self.reqs = 0
+
+    @property
+    def headcount(self):
+        return self.ftes + self.contr + self.reqs
+
 class Initiative:
     def __init__(self, name):
         [self.name, self.owner] = name_and_owner(name)
@@ -80,15 +101,18 @@ class Target:
                     print("Invalid resource declaration '{}' in target {}" \
                           .format(m, self.name))
 
+cur_team = None
 cur_initiative = None
 cur_project = None
 cur_target = None
 
+in_teams = None
 in_topline_goal = False
 in_kpi = False
 
 initiatives = []
 maintenance = None
+teams = {}
 
 verbose = len(sys.argv) > 1 and sys.argv[1] == "-v"
 
@@ -124,6 +148,53 @@ with open(os.path.join(INPUT_PATH + ".tmp"), "r") as f:
 
         if line.startswith("* Not going to happen"):
             break
+
+        if origline == "Teams:":
+            in_teams = True
+            continue
+
+        if in_teams:
+            if line.startswith("* Notes: "):
+                continue
+
+            if line.startswith("* Team: "):
+                cur_team = Team(origline[8:])
+
+                teams[cur_team.shortname] = cur_team
+
+                continue
+
+            if line.startswith("* Current FTEs:"):
+                ftes = line[15:].strip()
+
+                if len(ftes) > 0:
+                    cur_team.ftes = int(ftes)
+
+                continue
+
+            if line.startswith("* Open reqs:"):
+                reqs = line[12:].strip()
+
+                if len(reqs) > 0:
+                    cur_team.reqs = int(reqs)
+
+                continue
+
+            if line.startswith("* Current Contractors:"):
+                contr = line[22:].strip()
+
+                if len(contr) > 0:
+                    cur_team.contr = int(contr)
+
+                continue
+
+            if line.startswith("* Initiative: "):
+                in_teams = False
+            else:
+                if verbose:
+                    print(line)
+
+                continue
 
         if line.startswith("* Initiative: Platform Maintenance"):
             cur_initiative = Initiative(line[14:])
@@ -290,18 +361,37 @@ def dump_resources():
 
     res = dump_initiative_resources(initiatives + [maintenance])
 
-    def dump_res(res, title):
+    def dump_res(res, title, dump_delta = False):
         print("\n\n" + title)
         total = 0.0
 
         for team in sorted(res.keys(), key=str.lower):
-            print("  {: <15s}: {:.1f}".format(team, res[team]))
+            if team == "none" and res[team] == 0:
+                continue
+
+            delta = ""
+
+            if dump_delta:
+                delta = "unknown team"
+
+                if team in teams:
+                    if teams[team].headcount == 0:
+                        delta = "no current data"
+                    else:
+                        delta = res[team] - teams[team].headcount
+                        delta = "{}{:.2f}".format('+' if delta >= 0 else '',
+                                                  delta)
+
+                delta = " ({})".format(delta)
+
+            print("  {: <15s}: {:.2f}{}" \
+                  .format(team, res[team], delta))
 
             total += res[team]
 
-        print("  ----------------------\n  Total          : {:.1f}".format(total))
+        print("  ----------------------\n  Total          : {:.2f}".format(total))
 
-    dump_res(res, "All resources")
+    dump_res(res, "All resources", True)
 
     projects = []
 
