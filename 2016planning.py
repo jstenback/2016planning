@@ -22,7 +22,7 @@ class Team:
     def __init__(self, name):
         data = name.split('(')
         self.name = data[0].strip()
-        self.shortname = name
+        self.shortname = self.name
 
         if len(data) > 1:
             self.shortname = data[1]
@@ -158,7 +158,7 @@ with open(os.path.join(INPUT_PATH + ".tmp"), "r") as f:
                 continue
 
             if line.startswith("* Team: "):
-                cur_team = Team(origline[8:])
+                cur_team = Team(line[8:])
 
                 teams[cur_team.shortname] = cur_team
 
