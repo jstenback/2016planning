@@ -314,7 +314,8 @@ def dump_CSV_all():
                     targets += " [{}]".format(when)
 
             if not i.toplinegoals[0] in topline_goals:
-                raise Exception("Invalid topline goal: '{}'".format(i.toplinegoals[0]))
+                raise Exception("Invalid topline goal: '{}'" \
+                                .format(i.toplinegoals[0]))
 
             print('"{}", "{}", "", "{}", "", "{}", "{}"' \
                   .format(topline_goals[i.toplinegoals[0]], i.name, p.name,
@@ -397,7 +398,8 @@ def dump_resources():
 
             total += res[team]
 
-        print("  ----------------------\n  Total          : {:.2f}".format(total))
+        print("  ----------------------\n  Total          : {:.2f}" \
+              .format(total))
 
     dump_res(res, "All resources", True)
 
@@ -419,7 +421,9 @@ def dump_resources():
             if not r.endswith(" ($)"):
                 continue
 
-            print("  ${}k allocated for {} for {}, {}".format(int(t.resources[r] / 1000), r, t.project.name, t.name))
+            print("  ${}k allocated for {} for {}, {}" \
+                  .format(int(t.resources[r] / 1000), r, t.project.name,
+                          t.name))
 
 def dump_CSV_projects():
     res = {}
