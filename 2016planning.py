@@ -362,7 +362,7 @@ def dump_resources():
 
     res = dump_initiative_resources(initiatives + [maintenance])
 
-    def dump_res(res, title, dump_delta = False):
+    def dump_res(res, title, dump_delta = False, current_hc = False):
         print("\n\n" + title)
         total = 0.0
         total_hc = 0
@@ -396,15 +396,20 @@ def dump_resources():
 
                 delta = s + ")"
 
-            print("  {: <15s}: {:.2f}{}" \
+            print("  {: <15s}: {: >6.2f}{}" \
                   .format(team, res[team], delta))
 
             total += res[team]
 
-        print("  ----------------------\n  Total          : {:.2f} (current {})" \
-              .format(total, total_hc))
+        chc = ""
 
-    dump_res(res, "All resources", True)
+        if current_hc:
+            chc =  " (current {})".format(total_hc)
+
+        print("  -----------------------\n  Total          : {: >6.2f}{}" \
+              .format(total, chc))
+
+    dump_res(res, "All resources", True, True)
 
     projects = []
 
@@ -419,12 +424,12 @@ def dump_resources():
     total = 0.0
 
     for p in sorted(maintenance.projects, key=lambda p: -p.res_total):
-        print("  {: <15s}: {:.2f}".format(p.name, p.res[p.name]))
+        print("  {: <15s}: {: >6.2f}".format(p.name, p.res[p.name]))
 
         total += p.res[p.name]
 
-    print("  ----------------------")
-    print("  Total          : {:.2f}".format(total))
+    print("  -----------------------")
+    print("  Total          : {: >6.2f}".format(total))
 
     print("\nMoney requested:")
 
