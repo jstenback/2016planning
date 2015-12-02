@@ -46,6 +46,9 @@ class Initiative:
         self.kpis = []
         self.projects = []
 
+PRIORITY_NOT_SET = -2
+PRIORITY_UNKNOWN = -1
+
 class Project:
     def __init__(self, name, initiative):
         [self.name, self.owner] = name_and_owner(name)
@@ -55,6 +58,7 @@ class Project:
         self.dependencies = ""
         self.res = {}
         self.res_total = 0.0
+        self.priority = PRIORITY_NOT_SET
 
 class Target:
     def __init__(self, name, project):
@@ -63,6 +67,7 @@ class Target:
         self.when = None
         self.dependencies = ""
         self.resources = None
+        self.priority = PRIORITY_NOT_SET
 
     def addResources(self, r):
         if self.resources == None:
@@ -100,6 +105,12 @@ class Target:
                 if verbose:
                     print("Invalid resource declaration '{}' in target {}" \
                           .format(m, self.name))
+
+    def getpriority(self):
+        if self.priority != PRIORITY_NOT_SET:
+            return self.priority
+
+        return self.project.priority
 
 cur_team = None
 cur_initiative = None
@@ -231,6 +242,7 @@ with open(os.path.join(INPUT_PATH + ".tmp"), "r") as f:
 
             cur_project = Project(line[8:], cur_initiative)
             maintenance.projects.append(cur_project)
+            cur_project.priority = 11
             continue
 
         if line.startswith("* Target:"):
@@ -249,6 +261,27 @@ with open(os.path.join(INPUT_PATH + ".tmp"), "r") as f:
 
         if origline.startswith("         * When:"):
             cur_project.targets[-1].when = line[8:]
+            continue
+
+        def readpriority(s):
+            p = s.strip()
+
+            if p == '?':
+                return PRIORITY_UNKNOWN
+
+            p = float(p)
+
+            if not p in range(0, 12):
+                raise Exception("Priority {} out of range.".format(p))
+
+            return p
+
+        if origline.startswith("         * Priority:"):
+            cur_project.targets[-1].priority = readpriority(line[11:])
+            continue
+
+        if origline.startswith("      * Priority:"):
+            cur_project.priority = readpriority(line[11:])
             continue
 
         if origline.startswith("      * Dependencies: "):
