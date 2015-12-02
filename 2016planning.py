@@ -290,7 +290,7 @@ with open(os.path.join(INPUT_PATH + ".tmp"), "r") as f:
             if p == '?':
                 return PRIORITY_UNKNOWN
 
-            p = float(p)
+            p = int(p)
 
             if not p in range(0, 12):
                 raise Exception("Priority {} out of range.".format(p))
