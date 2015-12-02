@@ -332,9 +332,43 @@ with open(os.path.join(INPUT_PATH + ".tmp"), "r") as f:
         if verbose:
             print(origline)
 
-
 if verbose:
     print("\n\n\ndump:\n\n")
+
+# Run throgh all targets and verify stuff as well as compute Project
+# resource totals as well as dollar totals.
+dollar_targets = []
+for i in (initiatives + [maintenance]):
+    for p in i.projects:
+        if i != maintenance:
+            if not p.owner:
+                print("Missing owner for project {}".format(p.name))
+
+        for t in p.targets:
+            if t.resources == None:
+                print("Resource declaration missing from {}, {}" \
+                      .format(p.name, t.name))
+            elif t.resources:
+                for r in t.resources:
+                    if r == '':
+                        print("Missing team name for target {}" \
+                              .format(t.name))
+
+                        continue
+
+                    if r.endswith(" ($)"):
+                        dollar_targets.append(t)
+
+                        continue
+
+                    p.res[r] = p.res.setdefault(r, 0) + t.resources[r]
+                    p.res_total += t.resources[r]
+
+                #print("{}, {}: {}".format(p.name, t.name, t.resources))
+            else:
+                if verbose:
+                    print("No resource request for target {}." \
+                          .format(t.name))
 
 def dump_all():
     for i in initiatives:
@@ -385,36 +419,17 @@ def dump_resources():
         res = {}
         for i in initiatives:
             for p in i.projects:
-                if i != maintenance:
-                    if not p.owner:
-                        print("Missing owner for project {}".format(p.name))
 
                 for t in p.targets:
-                    if t.resources == None:
-                        print("Resource declaration missing from {}, {}" \
-                              .format(p.name, t.name))
-                    elif t.resources:
+                    if t.resources:
                         for r in t.resources:
                             if r == '':
-                                print("Missing team name for target {}" \
-                                      .format(t.name))
-
                                 continue
 
                             if r.endswith(" ($)"):
-                                dollar_targets.append(t)
-
                                 continue
 
                             res[r] = res.setdefault(r, 0) + t.resources[r]
-                            p.res[r] = p.res.setdefault(r, 0) + t.resources[r]
-                            p.res_total += t.resources[r]
-
-                        #print("{}, {}: {}".format(p.name, t.name, t.resources))
-                    else:
-                        if verbose:
-                            print("No resource request for target {}." \
-                                  .format(t.name))
 
         return res
 
