@@ -498,11 +498,12 @@ def dump_resources(priority = -3):
 
     projects = []
 
-    for i in initiatives:
-        projects += i.projects
+    if verbose:
+        for i in initiatives:
+            projects += i.projects
 
-    for p in sorted(projects, key=lambda p: -p.res_total):
-        dump_res(p.res, "Project: {} [{}]".format(p.name, p.owner))
+        for p in sorted(projects, key=lambda p: -p.res_total):
+            dump_res(p.res, "Project: {} [{}]".format(p.name, p.owner))
 
     print("\nMaintenance:")
 
