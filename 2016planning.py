@@ -361,8 +361,9 @@ for i in (initiatives + [maintenance]):
 
                         continue
 
-                    p.res[r] = p.res.setdefault(r, 0) + t.resources[r]
-                    p.res_total += t.resources[r]
+                    if t.getpriority() > 0:
+                        p.res[r] = p.res.setdefault(r, 0) + t.resources[r]
+                        p.res_total += t.resources[r]
 
                 #print("{}, {}: {}".format(p.name, t.name, t.resources))
             else:
@@ -413,14 +414,21 @@ def dump_CSV_all():
                   .format(topline_goals[i.toplinegoals[0]], i.name, p.name,
                           targets, p.when or ""))
 
-def dump_resources():
-    dollar_targets = []
-    def dump_initiative_resources(initiatives):
+def dump_resources(priority = -3):
+    def get_resources(initiatives):
         res = {}
         for i in initiatives:
             for p in i.projects:
+                if p.strategic_investment != None:
+                    continue
 
                 for t in p.targets:
+                    if t.getpriority() <= 0:
+                        continue
+
+                    if t.getpriority() < priority:
+                        continue
+
                     if t.resources:
                         for r in t.resources:
                             if r == '':
@@ -433,7 +441,7 @@ def dump_resources():
 
         return res
 
-    res = dump_initiative_resources(initiatives + [maintenance])
+    res = get_resources(initiatives + [maintenance])
 
     def dump_res(res, title, dump_delta = False, current_hc = False):
         print("\n\n" + title)
@@ -482,7 +490,11 @@ def dump_resources():
         print("  -----------------------\n  Total          : {: >6.2f}{}" \
               .format(total, chc))
 
-    dump_res(res, "All resources", True, True)
+    if priority >= 0 or priority == -3:
+        dump_res(res, "All resource requests", True, True)
+
+    if priority != -3:
+        return
 
     projects = []
 
@@ -531,6 +543,93 @@ def dump_CSV_projects():
                   .format(topline_goals[i.toplinegoals[0]], i.name, p.name,
                           when))
 
+def dump_prioritized():
+    prioritized = {}
+    res = {}
 
+    for i in initiatives:
+        for p in i.projects:
+            if p.strategic_investment != None:
+                continue
+
+            for t in p.targets:
+                if not t.getpriority() in prioritized:
+                    prioritized[t.getpriority()] = []
+
+                prioritized[t.getpriority()].append(t)
+
+                if not t.getpriority() in res:
+                    res[t.getpriority()] = 0
+
+                res[t.getpriority()] += t.gettotalresources()
+
+    maintenance_total = 0.0
+
+    for p in maintenance.projects:
+        maintenance_total += p.res[p.name]
+
+    print ("Priority Maintenance, resource needs {:.2f}\n" \
+           .format(maintenance_total))
+
+    prev = maintenance_total
+
+    for p in sorted(prioritized.keys(), reverse = True):
+        ps = str(p)
+        if p == PRIORITY_NOT_SET:
+            ps = "not set"
+        elif p == PRIORITY_UNKNOWN:
+            ps = "unknown"
+        print("Priority {}, resource needs {:.2f}, total {}:" \
+              .format(ps, res[p], prev + res[p]))
+
+        if p > 0:
+            dump_resources(p)
+
+        print("\nIncluded targets {}:".format(len(prioritized[p])))
+
+        prev = prev + res[p]
+
+        for t in prioritized[p]:
+            if t.resources:
+                print("  {}, {}".format(t.project.name, t.name))
+
+        print()
+
+    total_si = 0.0
+
+    for i in initiatives:
+        for p in i.projects:
+            if p.strategic_investment == None:
+                continue
+
+            t = 0
+            for r in p.res:
+                t += p.res[r]
+
+            print("Strategic investment {}, resource needs {} {}:" \
+                  .format(p.strategic_investment, t, str(p.res)))
+
+            total_si += p.res_total
+
+    print("Total strategic investment: {:.2f}".format(total_si))
+
+def dump_initiative_asks():
+    print("\nHeadcount asks per initiative:")
+    total = 0.0
+    for i in initiatives + [maintenance]:
+        ptotal = 0.0
+        for p in i.projects:
+            for t in p.targets:
+                if t.getpriority() >= 8:
+                    ptotal += t.gettotalresources()
+
+        print("  {}: {:.2f}" \
+              .format(i.name, ptotal))
+
+        total += ptotal
+
+    print("Initiatives total: {:.2f}".format(total))
 
 dump_resources()
+dump_prioritized()
+dump_initiative_asks()
