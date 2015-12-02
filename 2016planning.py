@@ -59,6 +59,7 @@ class Project:
         self.res = {}
         self.res_total = 0.0
         self.priority = PRIORITY_NOT_SET
+        self.strategic_investment = None
 
 class Target:
     def __init__(self, name, project):
@@ -282,6 +283,10 @@ with open(os.path.join(INPUT_PATH + ".tmp"), "r") as f:
 
         if origline.startswith("      * Priority:"):
             cur_project.priority = readpriority(line[11:])
+            continue
+
+        if line.startswith("* Strategic Investment:"):
+            cur_project.strategic_investment = line[23:].strip()
             continue
 
         if origline.startswith("      * Dependencies: "):
