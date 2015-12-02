@@ -113,6 +113,26 @@ class Target:
 
         return self.project.priority
 
+    def gettotalresources(self):
+        res = 0.0
+
+        if self.project.strategic_investment != None:
+            return 0.0
+
+        if self.resources == None:
+            return 0.0
+
+        for r in self.resources:
+            if r == '':
+                continue
+
+            if r.endswith(" ($)"):
+                continue
+
+            res += self.resources[r]
+
+        return res
+
 cur_team = None
 cur_initiative = None
 cur_project = None
