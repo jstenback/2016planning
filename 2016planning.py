@@ -3,6 +3,12 @@
 import sys
 import os
 import re
+from argparse import ArgumentParser
+
+argparser = ArgumentParser(allow_abbrev=False)
+argparser.add_argument('-v', '--verbose', action="store_true", dest="verbose")
+argparser.add_argument(dest="action", nargs='*')
+args = argparser.parse_args()
 
 def name_and_owner(s):
     data = s.split('[')
@@ -94,7 +100,7 @@ class Target:
                 res = res.strip()
 
                 if res == "?":
-                    if verbose:
+                    if args.verbose:
                         print("Resourcing in {} TBD for {}" \
                               .format(team, self.name))
                 elif res.startswith('$'):
@@ -104,7 +110,7 @@ class Target:
                 else:
                     self.resources[team] = self.resources.setdefault(team, 0) + float(res)
             except:
-                if verbose:
+                if args.verbose:
                     print("Invalid resource declaration '{}' in target {}" \
                           .format(m, self.name))
 
@@ -143,8 +149,6 @@ in_kpi = False
 initiatives = []
 maintenance = None
 teams = {}
-
-verbose = len(sys.argv) > 1 and sys.argv[1] == "-v"
 
 topline_goals = {
     "Build for Quality": "A. Build for Quality",
@@ -221,7 +225,7 @@ with open(os.path.join(INPUT_PATH + ".tmp"), "r") as f:
             if line.startswith("* Initiative: "):
                 in_teams = False
             else:
-                if verbose:
+                if args.verbose:
                     print(line)
 
                 continue
@@ -327,10 +331,10 @@ with open(os.path.join(INPUT_PATH + ".tmp"), "r") as f:
             cur_initiative.kpis.append(line[2:])
             continue
 
-        if verbose:
+        if args.verbose:
             print(origline)
 
-if verbose:
+if args.verbose:
     print("\n\n\ndump:\n\n")
 
 # Run throgh all targets and verify stuff as well as compute Project
@@ -365,7 +369,7 @@ for i in (initiatives + [maintenance]):
 
                 #print("{}, {}: {}".format(p.name, t.name, t.resources))
             else:
-                if verbose:
+                if args.verbose:
                     print("No resource request for target {}." \
                           .format(t.name))
 
@@ -503,7 +507,7 @@ def dump_resources(priority = -3):
 
     projects = []
 
-    if verbose:
+    if args.verbose:
         for i in initiatives:
             projects += i.projects
 
@@ -620,6 +624,19 @@ def dump_initiative_asks():
 
     print("Initiatives total: {:.2f}".format(total))
 
-dump_resources()
-dump_prioritized()
-dump_initiative_asks()
+for a in args.action:
+    if a not in ["dump_resources",
+                 "dump_prioritized",
+                 "dump_initiative_asks",
+                 "dump_CSV_all",
+                 "dump_all"]:
+        raise Exception("Unknown action '{}', exiting".format(a))
+
+if "dump_resources" in args.action:
+    dump_resources()
+
+if "dump_prioritized" in args.action:
+    dump_prioritized()
+
+if "dump_initiative_asks" in args.action:
+    dump_initiative_asks()
