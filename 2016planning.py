@@ -48,6 +48,7 @@ class Initiative:
 
 PRIORITY_NOT_SET = -2
 PRIORITY_UNKNOWN = -1
+PRIORITY_THRESHOLD = 8
 
 class Project:
     def __init__(self, name, initiative):
@@ -390,7 +391,7 @@ def dump_CSV_all():
         for p in i.projects:
             targets = ""
             for t in p.targets:
-                if t.getpriority() < 8:
+                if t.getpriority() < PRIORITY_THRESHOLD:
                     continue
 
                 if targets != "":
@@ -625,7 +626,7 @@ def dump_initiative_asks():
         ptotal = 0.0
         for p in i.projects:
             for t in p.targets:
-                if t.getpriority() >= 8:
+                if t.getpriority() >= PRIORITY_THRESHOLD:
                     ptotal += t.gettotalresources()
 
         print("  {}: {:.2f}" \
