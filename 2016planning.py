@@ -387,11 +387,15 @@ def dump_all():
 
                 if t.when != None:
                     print("      when: {}".format(t.when))
+
 def dump_CSV_all():
     for i in initiatives:
         for p in i.projects:
             targets = ""
             for t in p.targets:
+                if t.getpriority() < 8:
+                    continue
+
                 if targets != "":
                     targets += '\n'
 
@@ -405,6 +409,9 @@ def dump_CSV_all():
 
                 if when != None:
                     targets += " [{}]".format(when)
+
+            if targets == "":
+                continue
 
             if not i.toplinegoals[0] in topline_goals:
                 raise Exception("Invalid topline goal: '{}'" \
