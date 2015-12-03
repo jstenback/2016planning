@@ -533,22 +533,6 @@ def dump_resources(priority = -3):
                   .format(int(t.resources[r] / 1000), r, t.project.name,
                           t.name))
 
-def dump_CSV_projects():
-    res = {}
-    for i in initiatives:
-        for p in i.projects:
-            when = ""
-            if p.when != None:
-                when = p.when
-
-            if not i.toplinegoals[0] in topline_goals:
-                raise Exception("Invalid topline goal: '{}'" \
-                                .format(i.toplinegoals[0]))
-
-            print('"{}", "{}", "", "{}", "", "", "{}"' \
-                  .format(topline_goals[i.toplinegoals[0]], i.name, p.name,
-                          when))
-
 def dump_prioritized():
     prioritized = {}
     res = {}
