@@ -116,9 +116,6 @@ class Target:
     def gettotalresources(self):
         res = 0.0
 
-        if self.project.strategic_investment != None:
-            return 0.0
-
         if self.resources == None:
             return 0.0
 
