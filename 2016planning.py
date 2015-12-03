@@ -5,10 +5,23 @@ import os
 import re
 from argparse import ArgumentParser
 
+actions = ["dump_resources",
+           "dump_prioritized",
+           "dump_initiative_asks",
+           "dump_CSV_all",
+           "dump_all"]
+
 argparser = ArgumentParser(allow_abbrev=False)
 argparser.add_argument('-v', '--verbose', action="store_true", dest="verbose")
-argparser.add_argument(dest="action", nargs='*')
+argparser.add_argument(dest="action", nargs='*',
+                       default=["dump_resources",
+                                "dump_prioritized",
+                                "dump_initiative_asks"])
 args = argparser.parse_args()
+
+for a in args.action:
+    if a not in actions:
+        raise Exception("Unknown action '{}', exiting".format(a))
 
 def name_and_owner(s):
     data = s.split('[')
@@ -625,18 +638,17 @@ def dump_initiative_asks():
     print("Initiatives total: {:.2f}".format(total))
 
 for a in args.action:
-    if a not in ["dump_resources",
-                 "dump_prioritized",
-                 "dump_initiative_asks",
-                 "dump_CSV_all",
-                 "dump_all"]:
-        raise Exception("Unknown action '{}', exiting".format(a))
+    if a == "dump_resources":
+        dump_resources()
 
-if "dump_resources" in args.action:
-    dump_resources()
+    if a == "dump_prioritized":
+        dump_prioritized()
 
-if "dump_prioritized" in args.action:
-    dump_prioritized()
+    if a == "dump_initiative_asks":
+        dump_initiative_asks()
 
-if "dump_initiative_asks" in args.action:
-    dump_initiative_asks()
+    if a == "dump_CSV_all":
+        dump_CSV_all()
+
+    if a == "dump_all":
+        dump_all()
