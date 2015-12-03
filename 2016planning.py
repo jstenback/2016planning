@@ -361,7 +361,7 @@ for i in (initiatives + [maintenance]):
 
                         continue
 
-                    if t.getpriority() > 0:
+                    if t.getpriority() > 0 or p.strategic_investment:
                         p.res[r] = p.res.setdefault(r, 0) + t.resources[r]
                         p.res_total += t.resources[r]
 
