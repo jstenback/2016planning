@@ -452,9 +452,6 @@ def dump_resources(priority = -3):
         res = {}
         for i in initiatives:
             for p in i.projects:
-                if p.strategic_investment != None:
-                    continue
-
                 for t in p.targets:
                     if t.getpriority() <= 0:
                         continue
