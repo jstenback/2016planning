@@ -479,6 +479,7 @@ def dump_resources(priority = -3):
         print("\n\n" + title)
         total = 0.0
         total_hc = 0
+        total_reqs = 0
 
         for team in sorted(res.keys(), key=str.lower):
             if team == "none" and res[team] == 0:
@@ -498,6 +499,7 @@ def dump_resources(priority = -3):
                         reqs = t.reqs
 
                         total_hc += t.ftes
+                        total_reqs += t.reqs
 
                         s = " (current {}".format(t.ftes + t.contr)
 
@@ -517,7 +519,7 @@ def dump_resources(priority = -3):
         chc = ""
 
         if current_hc:
-            chc =  " (current {})".format(total_hc)
+            chc =  " (current {}, reqs {})".format(total_hc, total_reqs)
 
         print("  -----------------------\n  Total          : {: >6.2f}{}" \
               .format(total, chc))
