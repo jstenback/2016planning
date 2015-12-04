@@ -602,7 +602,8 @@ def dump_prioritized():
 
         for t in prioritized_targets[p]:
             if t.resources:
-                print("  {}, {}".format(t.project.name, t.name))
+                print("  {}, {} {}".format(t.project.name, t.name,
+                                           str(t.resources)))
 
         print()
 
