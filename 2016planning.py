@@ -352,6 +352,7 @@ if args.verbose:
 
 # Run throgh all targets and verify stuff as well as compute Project
 # resource totals as well as dollar totals.
+prioritized_targets = {}
 dollar_targets = []
 for i in (initiatives + [maintenance]):
     for p in i.projects:
@@ -360,6 +361,15 @@ for i in (initiatives + [maintenance]):
                 print("Missing owner for project {}".format(p.name))
 
         for t in p.targets:
+            if i != maintenance and p.strategic_investment == None:
+                if not t.resources:
+                    continue
+
+                if not t.getpriority() in prioritized_targets:
+                    prioritized_targets[t.getpriority()] = []
+
+                prioritized_targets[t.getpriority()].append(t)
+
             if t.resources == None:
                 print("Resource declaration missing from {}, {}" \
                       .format(p.name, t.name))
@@ -551,7 +561,6 @@ def dump_resources(priority = -3):
                           t.name))
 
 def dump_prioritized():
-    prioritized = {}
     res = {}
 
     for i in initiatives:
@@ -560,11 +569,6 @@ def dump_prioritized():
                 continue
 
             for t in p.targets:
-                if not t.getpriority() in prioritized:
-                    prioritized[t.getpriority()] = []
-
-                prioritized[t.getpriority()].append(t)
-
                 if not t.getpriority() in res:
                     res[t.getpriority()] = 0
 
@@ -575,12 +579,12 @@ def dump_prioritized():
     for p in maintenance.projects:
         maintenance_total += p.res[p.name]
 
-    print ("Priority Maintenance, resource needs {:.2f}\n" \
-           .format(maintenance_total))
+    print("Priority Maintenance, resource needs {:.2f}\n" \
+          .format(maintenance_total))
 
     prev = maintenance_total
 
-    for p in sorted(prioritized.keys(), reverse = True):
+    for p in sorted(prioritized_targets.keys(), reverse = True):
         ps = str(p)
         if p == PRIORITY_NOT_SET:
             ps = "not set"
@@ -592,11 +596,11 @@ def dump_prioritized():
         if p > 0:
             dump_resources(p)
 
-        print("\nIncluded targets {}:".format(len(prioritized[p])))
+        print("\nIncluded targets {}:".format(len(prioritized_targets[p])))
 
         prev = prev + res[p]
 
-        for t in prioritized[p]:
+        for t in prioritized_targets[p]:
             if t.resources:
                 print("  {}, {}".format(t.project.name, t.name))
 
