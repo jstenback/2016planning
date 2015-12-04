@@ -12,12 +12,14 @@ actions = ["dump_resources",
            "dump_all",
            "dump_targets_prioritized"]
 
-argparser = ArgumentParser(allow_abbrev=False)
-argparser.add_argument('-v', '--verbose', action="store_true", dest="verbose")
-argparser.add_argument(dest="action", nargs='*',
-                       default=["dump_resources",
-                                "dump_prioritized",
-                                "dump_initiative_asks"])
+argparser = ArgumentParser(allow_abbrev = False)
+argparser.add_argument('-v', '--verbose', action = "store_true",
+                       dest = "verbose")
+argparser.add_argument(dest = "action", nargs='*',
+                       default = ["dump_resources",
+                                  "dump_prioritized",
+                                  "dump_initiative_asks"],
+                       help = "One of {}".format(actions))
 args = argparser.parse_args()
 
 for a in args.action:
