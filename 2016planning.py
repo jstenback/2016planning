@@ -10,7 +10,8 @@ actions = ["dump_resources",
            "dump_initiative_asks",
            "dump_CSV_all",
            "dump_all",
-           "dump_targets_prioritized"]
+           "dump_targets_prioritized",
+           "dump_team_initiative_resources"]
 
 argparser = ArgumentParser(allow_abbrev = False)
 argparser.add_argument('-v', '--verbose', action = "store_true",
@@ -571,6 +572,16 @@ def dump_resources(priority = -3):
                   .format(int(t.resources[r] / 1000), r, t.project.name,
                           t.name))
 
+def dump_team_initiative_resources():
+    total = 0.0
+    for team in sorted(teams.keys(), key=str.lower):
+        print("Team {}:".format(team))
+        for i in teams[team].initiative_resources:
+            print("  {}: {:.2f}".format(i, teams[team].initiative_resources[i]))
+            total += teams[team].initiative_resources[i]
+
+    print("Total: {:.2f}".format(total))
+
 def dump_prioritized():
     res = {}
 
@@ -686,3 +697,6 @@ for a in args.action:
 
     if a == "dump_targets_prioritized":
         dump_targets_prioritized()
+
+    if a == "dump_team_initiative_resources":
+        dump_team_initiative_resources()
