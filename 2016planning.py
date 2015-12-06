@@ -56,6 +56,7 @@ class Team:
         self.ftes = 0
         self.contr = 0
         self.reqs = 0
+        self.initiative_resources = {}
 
     @property
     def headcount(self):
@@ -395,6 +396,11 @@ for i in (initiatives + [maintenance]):
                     if t.getpriority() > 0 or p.strategic_investment:
                         p.res[r] = p.res.setdefault(r, 0) + t.resources[r]
                         p.res_total += t.resources[r]
+
+                    if r != "none" and t.getpriority() >= PRIORITY_THRESHOLD:
+                        n = t.project.initiative.name
+                        ir = teams[r].initiative_resources
+                        ir[n] = ir.setdefault(n, 0) + float(t.resources[r])
 
                 #print("{}, {}: {}".format(p.name, t.name, t.resources))
             else:
