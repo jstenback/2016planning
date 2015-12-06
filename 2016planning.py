@@ -453,7 +453,7 @@ def dump_CSV_all():
                           targets, p.when or ""))
 
 def dump_resources(priority = -3):
-    def get_resources(initiatives):
+    def get_resources(initiatives, priority):
         res = {}
         for i in initiatives:
             for p in i.projects:
@@ -476,7 +476,7 @@ def dump_resources(priority = -3):
 
         return res
 
-    res = get_resources(initiatives + [maintenance])
+    res = get_resources(initiatives + [maintenance], priority)
 
     def dump_res(res, title, dump_delta = False, current_hc = False):
         print("\n\n" + title)
