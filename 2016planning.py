@@ -119,12 +119,15 @@ class Target:
                     if args.verbose:
                         print("Resourcing in {} TBD for {}" \
                               .format(team, self.name))
-                elif res.startswith('$'):
+
+                        continue
+
+                if res.startswith('$'):
                     team += " ($)"
                     res = res[1:]
-                    self.resources[team] = self.resources.setdefault(team, 0) + float(res)
-                else:
-                    self.resources[team] = self.resources.setdefault(team, 0) + float(res)
+
+                self.resources[team] = self.resources.setdefault(team, 0) + \
+                                       float(res)
             except:
                 if args.verbose:
                     print("Invalid resource declaration '{}' in target {}" \
@@ -530,9 +533,9 @@ def dump_resources(priority = -3):
     if priority != -3:
         return
 
-    projects = []
-
     if args.verbose:
+        projects = []
+
         for i in initiatives:
             projects += i.projects
 
