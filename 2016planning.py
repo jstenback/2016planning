@@ -650,7 +650,7 @@ def dump_prioritized():
 def dump_initiative_asks():
     print("\nHeadcount asks per initiative:")
     total = 0.0
-    for i in initiatives + [maintenance]:
+    for i in sorted(initiatives + [maintenance], key=lambda p: p.name):
         ptotal = 0.0
         for p in i.projects:
             for t in p.targets:
