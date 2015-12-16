@@ -9,6 +9,7 @@ actions = ["dump_resources",
            "dump_prioritized",
            "dump_initiative_asks",
            "dump_CSV_all",
+           "dump_CSV_stopped",
            "dump_all",
            "dump_targets_prioritized",
            "dump_team_initiative_resources"]
@@ -459,6 +460,29 @@ def dump_CSV_all():
                   .format(topline_goals[i.toplinegoals[0]], i.name, p.name,
                           targets, p.when or ""))
 
+def dump_CSV_stopped():
+    for i in initiatives:
+        for p in i.projects:
+            targets = ""
+            for t in p.targets:
+                if t.getpriority() >= PRIORITY_THRESHOLD:
+                    continue
+
+                if targets != "":
+                    targets += '\n'
+
+                targets += t.name
+
+            if targets == "":
+                continue
+
+            if not i.toplinegoals[0] in topline_goals:
+                raise Exception("Invalid topline goal: '{}'" \
+                                .format(i.toplinegoals[0]))
+
+            print('"{}", "{}", "{}"' \
+                  .format(i.name, p.name, targets))
+
 def dump_resources(priority = -3):
     def get_resources(initiatives, priority):
         res = {}
@@ -691,6 +715,9 @@ for a in args.action:
 
     if a == "dump_CSV_all":
         dump_CSV_all()
+
+    if a == "dump_CSV_stopped":
+        dump_CSV_stopped()
 
     if a == "dump_all":
         dump_all()
