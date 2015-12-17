@@ -370,6 +370,11 @@ for i in (initiatives + [maintenance]):
                 print("Missing owner for project {}".format(p.name))
 
         for t in p.targets:
+            if p.strategic_investment and t.getpriority() < PRIORITY_THRESHOLD:
+                print("Strategic investment {}, {} at priority < {}" \
+                      .format(p.strategic_investment, t.name,
+                              PRIORITY_THRESHOLD))
+
             if i != maintenance and p.strategic_investment == None:
                 if not t.resources:
                     continue
