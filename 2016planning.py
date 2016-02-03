@@ -13,7 +13,10 @@ actions = ["dump_resources",
            "dump_all",
            "dump_targets_prioritized",
            "dump_team_initiative_resources",
-           "dump_taipei_targets"]
+           "dump_taipei_targets",
+           "trello_push_targets",
+           "trello_push_projects",
+           "trello_push_initiatives"]
 
 argparser = ArgumentParser(allow_abbrev = False)
 argparser.add_argument('-v', '--verbose', action = "store_true",
@@ -767,6 +770,163 @@ def dump_targets_prioritized():
 
         print("\n")
 
+def trello_push_initiatives():
+    from trello import TrelloSession
+
+    board = TrelloSession().boards['2016 Platform Status Board']
+
+    initiatives_list = board.lists['2016 - Initiatives']
+
+    print("Deleting cards.")
+
+    for c in initiatives_list.cards:
+        initiatives_list.cards[c].delete()
+
+    print("Creating cards:")
+
+    for i in initiatives:
+        descr = "Owner: {}\n\nTopline guidance:\n\n".format(i.owner)
+
+        for g in i.toplinegoals:
+            descr += "-  {}\n".format(g)
+
+        descr += "\nKPIs:\n\n"
+
+        for k in i.kpis:
+            descr += "-  {}\n".format(k)
+
+        print("  Creating card {}".format(i.name))
+        initiatives_list.createCard(i.name, descr)
+
+trello_priorities = ['P0',
+                     'P1',
+                     'P2',
+                     'P3',
+                     'P4',
+                     'P5',
+                     'P6',
+                     'P7',
+                     'P8',
+                     'P9',
+                     'P10',
+                     'P11']
+
+def trello_push_projects():
+    from trello import TrelloSession
+    import json
+
+    board = TrelloSession().boards['2016 Platform Status Board']
+
+    projects_list = board.lists['2016 - Projects']
+    initiatives_list = board.lists['2016 - Initiatives']
+
+    if projects_list.cards:
+        print("Deleting cards.")
+
+        for c in projects_list.cards:
+            print("Deleting {}".format(c))
+            projects_list.cards[c].delete()
+
+    print("Creating cards:")
+
+    for i in initiatives:
+        for p in i.projects:
+            descr = "Owner: {}\n\n".format(p.owner)
+
+            if p.drivers:
+                descr += "Drivers:\n\n"
+
+                for d in p.drivers:
+                    descr += "-  {}\n".format(d)
+
+            descr += "Initiative: " + initiatives_list.cards[p.initiative.name].shortUrl
+
+            member_ids = set()
+            label_ids = set()
+            for t in p.targets:
+                for r in t.resources:
+                    if r == '' or r.endswith(" ($)"):
+                        continue
+
+                    if r in teams and teams[r].trello_team:
+                        team = teams[r]
+                        member_ids.add(board.members[team.trello_team].id)
+                        #member_ids.add(board.members[team.trello_manager].id)
+
+                label_ids.add(board.labels[trello_priorities[t.getpriority()]].id)
+
+            print("  Creating card {}".format(p.name))
+
+            card = projects_list.createCard(p.name, descr,
+                                            labels = ','.join(label_ids),
+                                            members = ','.join(member_ids))
+
+            for n in p.notes:
+                print("Adding note...")
+
+                card.addComment(n)
+
+def get_priority_label_id(board, priority):
+    return board.labels[trello_priorities[priority]].id
+
+def trello_push_targets():
+    from trello import TrelloSession
+    import json
+
+    board = TrelloSession().boards['2016 Platform Status Board']
+
+    targets_list = board.lists['2016 - Backlog']
+    projects_list = board.lists['2016 - Projects']
+
+    if targets_list.cards:
+        for c in targets_list.cards:
+            print("Deleting {}".format(c))
+            targets_list.cards[c].delete()
+
+    print("Creating cards:")
+
+    for i in initiatives:
+        for p in i.projects:
+            for t in p.targets:
+                member_ids = set()
+                descr = ""
+
+                for d in p.drivers:
+                    descr += "-  {}\n".format(d)
+
+                descr += "Project: {}" \
+                         .format(projects_list.cards[p.name].shortUrl)
+
+                tt = 0.0
+
+                for r in t.resources:
+                    if r == '' or r.endswith(" ($)"):
+                        continue
+
+                    if r in teams and teams[r].trello_team:
+                        team = teams[r]
+                        member_ids.add(board.members[team.trello_team].id)
+                        #member_ids.add(board.members[team.trello_manager].id)
+
+                    tt += t.resources[r]
+
+                descr += "\n\nResource needs (in 1/2 man years): ({:.2f} {})" \
+                         .format(tt, str(t.resources))
+
+                label_ids = set(get_priority_label_id(board, t.getpriority()))
+
+                if t.taipei:
+                    label_ids.add(board.labels['Taipei'].id)
+
+                if t.drivers.find('Firefox Desktop') >= 0:
+                    label_ids.add(board.labels['Firefox Desktop'].id)
+
+                print("  Creating card {} - {}".format(p.name, t.name))
+
+                targets_list.createCard("{} - {}".format(p.name, t.name), descr,
+                                        labels = ','.join(label_ids),
+                                        members = ','.join(member_ids))
+
 for a in args.action:
     if a == "dump_resources":
         dump_resources()
@@ -794,3 +954,12 @@ for a in args.action:
 
     if a == "dump_taipei_targets":
         dump_taipei_targets()
+
+    if a == "trello_push_initiatives":
+        trello_push_initiatives()
+
+    if a == "trello_push_projects":
+        trello_push_projects()
+
+    if a == "trello_push_targets":
+        trello_push_targets()
