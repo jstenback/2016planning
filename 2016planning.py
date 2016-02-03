@@ -12,7 +12,8 @@ actions = ["dump_resources",
            "dump_CSV_stopped",
            "dump_all",
            "dump_targets_prioritized",
-           "dump_team_initiative_resources"]
+           "dump_team_initiative_resources",
+           "dump_taipei_targets"]
 
 argparser = ArgumentParser(allow_abbrev = False)
 argparser.add_argument('-v', '--verbose', action = "store_true",
@@ -95,6 +96,7 @@ class Target:
         self.dependencies = ""
         self.resources = None
         self.priority = PRIORITY_NOT_SET
+        self.taipei = False
 
     def addResources(self, r):
         if self.resources == None:
@@ -306,6 +308,14 @@ with open(os.path.join(INPUT_PATH + ".tmp"), "r") as f:
 
         if origline.startswith("         * When:"):
             cur_project.targets[-1].when = line[8:]
+            continue
+
+        if line.startswith("* Taipei: "):
+            cur_project.targets[-1].taipei = bool(line[10:])
+
+            if args.verbose and not cur_project.targets[-1].taipei:
+                print("False taipei setting? {}".format(line[10:]))
+
             continue
 
         def readpriority(s):
@@ -611,6 +621,18 @@ def dump_team_initiative_resources():
 
     print("Total: {:.2f}".format(total))
 
+def dump_taipei_targets():
+    print("Targets proposed for Taipei:")
+
+    for i in initiatives:
+        for p in i.projects:
+            for t in p.targets:
+                if not t.taipei:
+                    continue
+
+                print("  {} - {} (p{})".format(p.name, t.name,
+                                               t.getpriority()))
+
 def dump_prioritized():
     res = {}
 
@@ -732,3 +754,6 @@ for a in args.action:
 
     if a == "dump_team_initiative_resources":
         dump_team_initiative_resources()
+
+    if a == "dump_taipei_targets":
+        dump_taipei_targets()
