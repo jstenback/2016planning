@@ -48,6 +48,8 @@ class Team:
         data = name.split('(')
         self.name = data[0].strip()
         self.shortname = self.name
+        self.trello_manager = None
+        self.trello_team = None
 
         if len(data) > 1:
             self.shortname = data[1]
@@ -246,6 +248,16 @@ with open(os.path.join(INPUT_PATH + ".tmp"), "r") as f:
 
                 if len(contr) > 0:
                     cur_team.contr = int(contr)
+
+                continue
+
+            if line.startswith("* Trello team:"):
+                cur_team.trello_team = line[14:].strip()
+
+                continue
+
+            if line.startswith("* Trello manager:"):
+                cur_team.trello_manager = line[17:].strip()
 
                 continue
 
