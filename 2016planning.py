@@ -83,6 +83,8 @@ class Project:
         self.when = None
         self.targets = []
         self.dependencies = ""
+        self.drivers = []
+        self.notes = []
         self.res = {}
         self.res_total = 0.0
         self.priority = PRIORITY_NOT_SET
@@ -93,6 +95,7 @@ class Target:
         [self.name, self.owner] = name_and_owner(name)
         self.project = project
         self.when = None
+        self.notes = []
         self.dependencies = ""
         self.resources = None
         self.priority = PRIORITY_NOT_SET
@@ -297,9 +300,27 @@ with open(os.path.join(INPUT_PATH + ".tmp"), "r") as f:
 
             continue
 
-        if line.startswith("* Drivers: ") or \
-           line.startswith("* Notes: ") or \
-           line.startswith("* Feedback Notes: "):
+        if line.startswith("* Drivers: "):
+            cur_project.drivers.append(line[11:])
+
+            continue
+
+        if origline.startswith("      * Notes: "):
+            cur_project.notes.append(line[9:])
+
+            continue
+        elif line.startswith("* Notes: "):
+            cur_project.targets[-1].notes.append(line[9:])
+
+            continue
+
+        if origline.startswith("      * Note: "):
+            cur_project.notes.append(line[8:])
+
+            continue
+        elif line.startswith("* Note: "):
+            cur_project.targets[-1].notes.append(line[8:])
+
             continue
 
         if origline.startswith("      * When:"):
