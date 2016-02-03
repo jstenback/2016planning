@@ -575,7 +575,7 @@ def dump_resources(priority = -3):
                 if team in teams:
                     t = teams[team]
                     if t.headcount == 0:
-                        s = " (no current data"
+                        s = " (new team"
                     else:
                         new = res[team] - t.headcount
                         reqs = t.reqs
@@ -696,7 +696,7 @@ def dump_prioritized():
             ps = "not set"
         elif p == PRIORITY_UNKNOWN:
             ps = "unknown"
-        print("Priority {}, resource needs {:.2f}, total {}:" \
+        print("Priority {}, resource needs {:.2f}, total {:.02f}:" \
               .format(ps, res[p], prev + res[p]))
 
         if p > 0:
@@ -708,8 +708,12 @@ def dump_prioritized():
 
         for t in prioritized_targets[p]:
             if t.resources:
-                print("  {}, {} {}".format(t.project.name, t.name,
-                                           str(t.resources)))
+                tt = 0
+                for r in t.resources:
+                    tt += t.resources[r]
+
+                print("  {}, {} ({:.2f} {})".format(t.project.name, t.name,
+                                                    tt, str(t.resources)))
 
         print()
 
