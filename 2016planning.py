@@ -105,6 +105,7 @@ class Target:
         self.resources = None
         self.priority = PRIORITY_NOT_SET
         self.taipei = False
+        self.bug = None
 
     def addResources(self, r):
         if self.resources == None:
@@ -351,6 +352,11 @@ with open(os.path.join(INPUT_PATH + ".tmp"), "r") as f:
 
             if args.verbose and not cur_project.targets[-1].taipei:
                 print("False taipei setting? {}".format(line[10:]))
+
+            continue
+
+        if line.startswith("* Bugs:"):
+            cur_project.targets[-1].bug = line[7:].strip()
 
             continue
 
@@ -896,6 +902,10 @@ def trello_push_targets():
 
                 descr += "Project: {}" \
                          .format(projects_list.cards[p.name].shortUrl)
+
+                if t.bug:
+                    descr += "\n\nBugs: [{}](https://bugzilla.mozilla.org/show_bug.cgi?id={})" \
+                             .format(t.bug, t.bug)
 
                 tt = 0.0
 
