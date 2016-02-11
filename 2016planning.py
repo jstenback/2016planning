@@ -776,6 +776,11 @@ def dump_targets_prioritized():
 
         print("\n")
 
+def get_priority_label_id(board, priority):
+    p = max(0, priority)
+
+    return board.labels['P{}'.format(p)].id
+
 def trello_push_initiatives():
     from trello import TrelloSession
 
@@ -803,19 +808,6 @@ def trello_push_initiatives():
 
         print("  Creating card {}".format(i.name))
         initiatives_list.createCard(i.name, descr)
-
-trello_priorities = ['P0',
-                     'P1',
-                     'P2',
-                     'P3',
-                     'P4',
-                     'P5',
-                     'P6',
-                     'P7',
-                     'P8',
-                     'P9',
-                     'P10',
-                     'P11']
 
 def trello_push_projects():
     from trello import TrelloSession
@@ -859,7 +851,9 @@ def trello_push_projects():
                         member_ids.add(board.members[team.trello_team].id)
                         #member_ids.add(board.members[team.trello_manager].id)
 
-                label_ids.add(board.labels[trello_priorities[t.getpriority()]].id)
+            for d in p.drivers:
+                if d.find('Firefox Desktop') >= 0:
+                    label_ids.add(board.labels['Firefox Desktop'].id)
 
             print("  Creating card {}".format(p.name))
 
@@ -871,9 +865,6 @@ def trello_push_projects():
                 print("Adding note...")
 
                 card.addComment(n)
-
-def get_priority_label_id(board, priority):
-    return board.labels[trello_priorities[priority]].id
 
 def trello_push_targets():
     from trello import TrelloSession
@@ -923,13 +914,11 @@ def trello_push_targets():
                 descr += "\n\nResource needs (in 1/2 man years): ({:.2f} {})" \
                          .format(tt, str(t.resources))
 
-                label_ids = set(get_priority_label_id(board, t.getpriority()))
+                label_ids = set()
+                label_ids.add(get_priority_label_id(board, t.getpriority()))
 
                 if t.taipei:
                     label_ids.add(board.labels['Taipei'].id)
-
-                if t.drivers.find('Firefox Desktop') >= 0:
-                    label_ids.add(board.labels['Firefox Desktop'].id)
 
                 print("  Creating card {} - {}".format(p.name, t.name))
 
