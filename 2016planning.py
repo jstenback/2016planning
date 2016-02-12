@@ -4,6 +4,8 @@ import sys
 import os
 import re
 from argparse import ArgumentParser
+import hashlib
+import json
 
 actions = ["dump_resources",
            "dump_prioritized",
@@ -16,7 +18,8 @@ actions = ["dump_resources",
            "dump_taipei_targets",
            "trello_push_targets",
            "trello_push_projects",
-           "trello_push_initiatives"]
+           "trello_push_initiatives",
+           "trello_update_cards"]
 
 argparser = ArgumentParser(allow_abbrev = False)
 argparser.add_argument('-v', '--verbose', action = "store_true",
@@ -811,7 +814,6 @@ def trello_push_initiatives():
 
 def trello_push_projects():
     from trello import TrelloSession
-    import json
 
     board = TrelloSession().boards['2016 Platform Status Board']
 
@@ -868,7 +870,6 @@ def trello_push_projects():
 
 def trello_push_targets():
     from trello import TrelloSession
-    import json
 
     board = TrelloSession().boards['2016 Platform Status Board']
 
@@ -926,6 +927,244 @@ def trello_push_targets():
                                         labels = ','.join(label_ids),
                                         members = ','.join(member_ids))
 
+nick_to_trello = {'dbolter': 'davidb42',
+                  'blassey': 'bradlassey',
+                  'njn': 'nicholasnethercote1',
+                  'jet': 'jetvillegas',
+                  'dougt': 'doug_turner',
+                  'milan': 'milansreckovic',
+                  'naveed': 'naveedihsanullah',
+                  'tcole': None,
+                  'sfink': None,
+                  'smaug': None,
+                  'Andre Vrignaud': None,
+                  'avrignaud': None,
+                  'bhackett': 'naveedihsanullah',
+                  'Luke Wagner': 'lukewagner',
+                  'Sylvestre': None,
+                  'abillings': None,
+                  'arr': None,
+                  'chofmann': None,
+                  'dbryant': 'davidbryant9',
+                  'efaust': None,
+                  'jcoppeard': None,
+                  'jduell': None,
+                  'jgriffin': 'jonathangriffin4',
+                  'jonco': None,
+                  'jorendorff': None,
+                  'jst': 'johnnystenback',
+                  'k17e': 'kentuckyfriedtakahe',
+                  'kvijayan': None,
+                  'lmandel': None,
+                  'mbest': 'martinbest',
+                  'mcote': None,
+                  'miketaylor': 'miketaylor49',
+                  'miketaylr': 'miketaylor49',
+                  'mreavy': 'mairereavy',
+                  'overholt': 'andrewoverholt',
+                  'rbarnes': 'richardbarnes9',
+                  'selenamarie': None,
+                  'sworkman': 'stephenjhworkman',
+                  'vlad': None,
+                  '1': None,
+                  '2': None,
+                  '???': None
+                  }
+
+def trello_update_targets(board):
+    targets_list = board.lists['2016 - Backlog']
+
+    #print(board.members)
+
+    for i in initiatives:
+        for p in i.projects:
+            for t in p.targets:
+                card_name = "{} - {}".format(p.name, t.name)
+
+                print("Card name: {}".format(card_name))
+
+                card = targets_list.cards[card_name]
+
+                #print("Card: {}".format(str(card)))
+
+                if card.desc.find('\n\nHash: ') < 0:
+                    sha1 = hashlib.sha1()
+                    sha1.update(bytes(card_name, 'utf-8'))
+                    hashval = sha1.hexdigest()
+
+                    card.desc = card.desc + "\n\nHash: {}".format(hashval)
+
+                member_ids = set(card.members)
+
+                if t.owner:
+                    for o in t.owner.split(','):
+                        o = o.strip()
+                        if o in nick_to_trello and nick_to_trello[o]:
+                            member_ids.add(board.members[nick_to_trello[o]].id)
+
+                if p.owner:
+                    for o in p.owner.split(','):
+                        o = o.strip()
+                        if o in nick_to_trello and nick_to_trello[o]:
+                            member_ids.add(board.members[nick_to_trello[o]].id)
+
+                for r in t.resources:
+                    if r == '' or r.endswith(" ($)"):
+                        continue
+
+                    if r in teams and teams[r].trello_team:
+                        team = teams[r]
+                        for mgr in team.trello_manager.split(','):
+                            member_ids.add(board.members[mgr.strip()].id)
+
+                #print("old", card._data['idMembers'])
+                #print("new", member_ids)
+
+                if member_ids != set(card.members):
+                    card.members = member_ids
+
+                if 'P11' in card.labels and t.getpriority() != 11:
+                    print("Deleting label P11")
+                    card.deleteLabel(get_priority_label_id(board, 11))
+
+                ps = "P{}".format(max(0, t.getpriority()))
+
+                if ps not in card.labels:
+                    print("Adding label P{}".format(t.getpriority()))
+                    card.addLabel(get_priority_label_id(board, t.getpriority()))
+
+                if t.taipei and 'Taipei' not in card.labels:
+                    print("Adding label Taipei")
+                    card.addLabel(board.labels['Taipei'].id)
+
+def trello_update_projects(board):
+    projects_list = board.lists['2016 - Projects']
+    targets_list = board.lists['2016 - Backlog']
+
+    for i in initiatives:
+        for p in i.projects:
+            card_name = p.name
+
+            if card_name == 'Exposing Performance Timeline Information via WebDriver and JS':
+                continue
+
+            print("Card name: {}".format(card_name))
+
+            card = projects_list.cards[card_name]
+
+            #print("Card: {}".format(str(card)))
+
+            if card.desc.find('\n\nHash: ') < 0:
+                desc = card.desc + "\n\nTargets:\n"
+
+                for t in p.targets:
+                    tcn = "{} - {}".format(p.name, t.name)
+                    desc += "\n  " + targets_list.cards[tcn].shortUrl
+
+                sha1 = hashlib.sha1()
+                sha1.update(bytes(card_name, 'utf-8'))
+                hashval = sha1.hexdigest()
+
+                desc += "\n\nHash: {}".format(hashval)
+
+                card.desc = desc
+
+            member_ids = set(card.members)
+
+            if p.owner:
+                for o in p.owner.split(','):
+                    o = o.strip()
+                    if o in nick_to_trello and nick_to_trello[o]:
+                        member_ids.add(board.members[nick_to_trello[o]].id)
+
+            labels = set()
+
+            for t in p.targets:
+                if t.owner:
+                    for o in t.owner.split(','):
+                        o = o.strip()
+                        if o in nick_to_trello and nick_to_trello[o]:
+                            member_ids.add(board.members[nick_to_trello[o]].id)
+
+                for r in t.resources:
+                    if r == '' or r.endswith(" ($)"):
+                        continue
+
+                    if r in teams and teams[r].trello_team:
+                        team = teams[r]
+                        for mgr in team.trello_manager.split(','):
+                            #print("Adding member {}".format(mgr))
+                            member_ids.add(board.members[mgr.strip()].id)
+
+                #print("old", card._data['idMembers'])
+                #print("new", member_ids)
+
+                if member_ids != set(card.members):
+                    card.members = member_ids
+
+                labels.add(get_priority_label_id(board, t.getpriority()))
+
+                if t.taipei:
+                    labels.add(board.labels['Taipei'].id)
+
+            for l in labels:
+                if l not in card.label_ids:
+                    print("Adding label {}".format(l))
+                    card.addLabel(l)
+
+def trello_update_initiatives(board):
+    initiatives_list = board.lists['2016 - Initiatives']
+    projects_list = board.lists['2016 - Projects']
+
+    for i in initiatives:
+        card_name = i.name
+        card = initiatives_list.cards[card_name]
+
+        if card.desc.find('\n\nProjects:\n') < 0:
+            desc = card.desc + "\n\nProjects:\n"
+
+            for p in i.projects:
+                if p.name == 'Exposing Performance Timeline Information via WebDriver and JS':
+                    continue
+
+                desc += "\n  " + projects_list.cards[p.name].shortUrl
+
+            card.desc = desc
+
+        member_ids = set(card.members)
+
+        if i.owner:
+            for o in i.owner.split(','):
+                o = o.strip()
+                if o in nick_to_trello and nick_to_trello[o]:
+                    member_ids.add(board.members[nick_to_trello[o]].id)
+
+        labels = set()
+
+        for p in i.projects:
+            for t in p.targets:
+                labels.add(get_priority_label_id(board, t.getpriority()))
+
+                if t.taipei:
+                    labels.add(board.labels['Taipei'].id)
+
+        for l in labels:
+            if l not in card.label_ids:
+                print("Adding label {}".format(card.label_ids[l].name))
+                card.addLabel(l)
+
+        if member_ids != set(card.members):
+            card.members = member_ids
+
+def trello_update_cards():
+    from trello import TrelloSession
+
+    board = TrelloSession().boards['Platform Status Board']
+
+    trello_update_targets(board)
+    trello_update_projects(board)
+    trello_update_initiatives(board)
+
 for a in args.action:
     if a == "dump_resources":
         dump_resources()
@@ -962,3 +1201,6 @@ for a in args.action:
 
     if a == "trello_push_targets":
         trello_push_targets()
+
+    if a == "trello_update_cards":
+        trello_update_cards()
