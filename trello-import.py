@@ -25,7 +25,7 @@ for row in csvreader:
     priority = "P" + row[5]
     name = row[0]
 
-    card_id = row[10]
+    card_id = row[9]
 
     if card_id not in board.cardsById:
         print("Card {} ({}) missing from trello, skipping." \

@@ -8,7 +8,7 @@ from trello import TrelloSession
 
 board = TrelloSession().boards['Platform Status Board']
 
-projects_list = board.lists['Projects']
+projects_list = board.lists['Programs/Projects']
 
 project_urls = {}
 
@@ -27,12 +27,15 @@ for c in board.cards:
     card = board.cards[c]
     #print(card.name)
 
+    #if not ('Need UX' in card.labels or 'Developer Tools' in card.labels):
+    #    continue
+
     if card.listId not in board.listsById:
         continue
     
     card_list = board.listsById[card.listId]
 
-    if card_list.name in ['Projects', 'Initiatives']:
+    if card_list.name in ['Programs/Projects', '2017 Platform OKR\'s']:
         continue
 
     labels = []
@@ -44,13 +47,13 @@ for c in board.cards:
 
     if 'Need Priority' in labels:
         need_priority = 'x'
-        labels.remove('Need Priority')
+#        labels.remove('Need Priority')
 
     need_review = ""
 
     if 'Needs Review' in labels:
         need_review = 'x'
-        labels.remove('Needs Review')
+#        labels.remove('Needs Review')
 
     old_priority = ""
 
@@ -101,8 +104,10 @@ for c in board.cards:
 
         if len(res) > 0:
             if not (res.startswith('(') and res.endswith(')')) :
-                raise Exception("Invalid resource string '{}' in card {}" \
-                                .format(res, card.name))
+                print("Invalid resource string '{}' in card {}" \
+                      .format(res, card.name))
+
+                continue
 
             parts = res[1:-1].split(' ')
 
@@ -114,7 +119,7 @@ for c in board.cards:
                 print("Invalid resource declaration {} in card {}." \
                       .format(res, card.name))
 
-                raise e
+                continue
 
             sum = 0.0
             
@@ -122,7 +127,7 @@ for c in board.cards:
                 sum += res[a]
 
             if sum != total:
-                raise Exception("Total ({:.02f}) does not match sum ({:.02f}) in card {}" \
+                print("Total ({:.02f}) does not match sum ({:.02f}) in card {}" \
                                 .format(total, sum, card.name))
                 
     responsible = ""
